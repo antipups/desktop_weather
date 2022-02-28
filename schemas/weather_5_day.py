@@ -1,9 +1,9 @@
 import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, validator, Field
 
-from schemas.custom_enums import WeatherIcons
+# from schemas.custom_enums import WeatherIcons
 
 
 class Main_PartItem(BaseModel):
@@ -22,7 +22,7 @@ class Weather_PartItem(BaseModel):
     id: int
     main: str
     description: str
-    icon: WeatherIcons
+    icon: str
 
 
 class Clouds_PartItem(BaseModel):
@@ -35,20 +35,33 @@ class Wind(BaseModel):
     gust: float
 
 
-class Sys:
-    pod: str
-
-
 class WeatherOneItem(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
     dt: int
     main: Main_PartItem
     weather: List[Weather_PartItem]
     clouds: Clouds_PartItem
     wind: Wind
     visibility: int
-    pop: int
-    sys: Sys
-    dt_text: datetime.datetime
+    dt_txt: datetime.datetime
+
+
+class WeatherCityCoords(BaseModel):
+    lat: float
+    lon: float
+
+
+class WeatherCity(BaseModel):
+    id: int
+    name: str
+    coord: WeatherCityCoords
+    country: str
+    population: int
+    timezone: int
+    sunrise: int
+    sunset: int
 
 
 class WeatherFiveDay(BaseModel):
@@ -56,7 +69,8 @@ class WeatherFiveDay(BaseModel):
     message: int
     cnt: int = Field(gt=5)
     list: List[WeatherOneItem]
+    city: WeatherCity
 
     @validator('cod')
-    def check_status_code(self, v):
+    def check_status_code(cls, v):
         return int(v) == 200 and v
