@@ -1,9 +1,15 @@
-import functools
+"""
+    Общий конфиг, тут хранятся токены, и прочее, то, что не должно быть на гите
+"""
 
+import functools
+from configparser import ConfigParser
 from loguru import logger
 
 
-logger.add('logs.txt')
+config = ConfigParser()
+config.read('config.ini')
+logger.add(config['Filenames']['logs'])
 
 
 def logging(*, entry=True, exit=True, level="DEBUG"):

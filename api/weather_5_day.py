@@ -1,14 +1,18 @@
+"""
+    Получение погоды за 5 дней
+"""
+
 from typing import Tuple
 from requests import get
-from configparser import ConfigParser
+# from configparser import ConfigParser
 from api.config import Urls, Filenames
-from general_config import logging
+from general_config import logging, config
 from schemas.weather_5_day import WeatherFiveDay
 
 
-config = ConfigParser()
+# config = ConfigParser()
 # config.read(Filenames.config_ini)
-config.read('../' + Filenames.config_ini)
+# config.read('../' + Filenames.config_ini)
 
 
 @logging()
@@ -42,8 +46,17 @@ def get_weather_on_five_day():
     :return:
     """
     status, data = get_response()
+
     if status:
-        print(WeatherFiveDay.parse_obj(data))
+
+        try:
+            return status, WeatherFiveDay.parse_obj(data)
+
+        except Exception as e:
+            return False, f'Ошибка обработка данных полученных по Api, ошибка {e}'
+
+    else:
+        return status, f'Ошибка загрузки данных по Api {status}'
 
 
 if __name__ == '__main__':

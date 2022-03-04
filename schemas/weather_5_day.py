@@ -1,3 +1,7 @@
+"""
+    Валидация запроса на 5 дней по апи
+"""
+
 import datetime
 from typing import List, Optional
 
