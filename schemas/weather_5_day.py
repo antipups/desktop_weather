@@ -51,6 +51,11 @@ class WeatherOneItem(BaseModel):
     visibility: int
     dt_txt: datetime.datetime
 
+    # @validator("dt_txt")
+    # def get_noon_time(cls, value):
+    #     if datetime.datetime.strptime('12:00:00', '%H:%M:%S').time() == value.time():
+    #         return value
+
 
 class WeatherCityCoords(BaseModel):
     lat: float
@@ -76,5 +81,27 @@ class WeatherFiveDay(BaseModel):
     city: WeatherCity
 
     @validator('cod')
-    def check_status_code(cls, v):
+    def check_status_code(cls, v) -> bool | str:
+        """
+            Валидация на код 200
+        :param v: код
+        :return: фолс или сам код
+        """
         return int(v) == 200 and v
+
+    @validator('list')
+    def check_list_on_need_time(cls, items_weather_list) -> List:
+        """
+            Отбор нужных данных из апи (погода каждого дня ТОЛЬКО 12:00:00)
+        """
+
+        initial_list = tuple(items_weather_list)
+        result_list = []
+
+        for one_item in initial_list:
+            if datetime.datetime.strptime('12:00:00', '%H:%M:%S').time() == one_item.dt_txt.time():
+                result_list.append(one_item)
+
+        return result_list
+
+

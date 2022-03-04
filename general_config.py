@@ -3,38 +3,98 @@
 """
 
 import functools
+import sys
 from configparser import ConfigParser
 from loguru import logger
+from os.path import join as path_join
 
 
-config = ConfigParser()
-config.read('config.ini')
-logger.add(config['Filenames']['logs'])
+def load_config() -> ConfigParser:
+    """
+        Загрузка конфига
+    :return:
+    """
+
+    try:
+        config = ConfigParser()
+        config.read('config.ini')
+
+    except Exception as e:
+        logger.exception(e)
+        quit(1)
+
+    else:
+        return config
 
 
-def logging(*, entry=True, exit=True, level="DEBUG"):
+def prepare_logger():
+    """
+        Подготовка логгера
+    :return:
+    """
+    logger.remove()                             # удаление изначальных настроек
+
+    logger.add(sys.stderr, level='SUCCESS')     # перегрузка вывода в консоль
+    # 25 - уровень success info - 20 error - 40
+
+    logger_init_data = {'rotation': None,
+                        'compression': None}
+
+    logger_config = config['Logger']
+
+    if 'rotation' in logger_config:
+        logger_init_data['rotation'] = logger_config['rotation']
+
+    if 'compression' in logger_config:
+        logger_init_data['compression'] = logger_config['compression']
+
+    logger.add(config['Filenames']['logs'],     # перегрузка вывода в файл
+               **logger_config)
+
+
+config = load_config()
+prepare_logger()
+
+
+def logging(function=None, entry=True, exit=False, level="DEBUG"):
     """
         Реализация собственного декоратора для логирования
+    :param function: декорируемая функция
     :param entry: логировать входные данные
     :param exit: логировать выходные данные
     :param level: уровень логирования входа и выхода
     :return:
     """
+    if function is None:
+        return functools.partial(logging,
+                                 entry=entry,
+                                 exit=exit,
+                                 level=level)
 
-    def wrapper(func):
-        name = func.__name__
+    @functools.wraps(function)
+    def wrapper(*args, **kwargs):
 
-        @functools.wraps(func)
-        def wrapped(*args, **kwargs):
-            logger_ = logger.opt(depth=1)
-            if entry:
-                logger_.log(level, "Entering '{}' (args={}, kwargs={})", name, args, kwargs)
+        function_name = function.__name__
+        logger_ = logger.opt(depth=1)
 
-            result = func(*args, **kwargs)
-            if exit:
-                logger_.log(level, "Exiting '{}' (result={})", name, result)
-            return result
+        if entry:
+            logger_.log(level, "Entering '{}' (args={}, kwargs={})", function_name, args, kwargs)
 
-        return wrapped
+        try:
+            result = function(*args, **kwargs)
+
+        except Exception as e:
+            logger.exception(e)
+            return
+
+        if exit:
+            logger_.log(level, "Exiting '{}' (result={})", function_name, result)
+
+        return result
 
     return wrapper
+
+
+STATIC = 'static'
+ICONS = path_join(STATIC, 'icons')
+CSS = path_join(STATIC, 'css')

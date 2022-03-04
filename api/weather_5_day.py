@@ -15,7 +15,7 @@ from schemas.weather_5_day import WeatherFiveDay
 # config.read('../' + Filenames.config_ini)
 
 
-@logging()
+@logging
 def get_response() -> Tuple[bool, str | dict]:
     """
         Метод получения данных на 5 дней
@@ -28,7 +28,8 @@ def get_response() -> Tuple[bool, str | dict]:
         response = get(url=Urls.FiveDayWeather.format(city=api_settings['primary_city'],
                                                       country=api_settings['primary_country'],
                                                       units=api_settings['units'],
-                                                      app_id=config['Keys']['AppId']
+                                                      app_id=config['Keys']['AppId'],
+                                                      primarylanguage=config['App Settings']['primary_language']
                                                       ))
         if not response.ok:
             raise Exception('Status not 200')
@@ -40,10 +41,11 @@ def get_response() -> Tuple[bool, str | dict]:
         return True, response.json()
 
 
-def get_weather_on_five_day():
+def get_weather_on_five_day() -> Tuple[bool, str | WeatherFiveDay]:
     """
         Получение погоды на 5 дней
-    :return:
+    :return: булевое значение операции получения данных (истина - успешно, иначе - не успешно)
+        И строка с полученой ошибкой
     """
     status, data = get_response()
 
