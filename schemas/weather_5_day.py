@@ -51,11 +51,6 @@ class WeatherOneItem(BaseModel):
     visibility: int
     dt_txt: datetime.datetime
 
-    # @validator("dt_txt")
-    # def get_noon_time(cls, value):
-    #     if datetime.datetime.strptime('12:00:00', '%H:%M:%S').time() == value.time():
-    #         return value
-
 
 class WeatherCityCoords(BaseModel):
     lat: float

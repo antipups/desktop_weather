@@ -41,7 +41,7 @@ def get_response() -> Tuple[bool, str | dict]:
         return True, response.json()
 
 
-def get_weather_on_five_day() -> Tuple[bool, str | WeatherFiveDay]:
+def get_weather_on_five_day() -> Tuple[bool | int, str | WeatherFiveDay]:
     """
         Получение погоды на 5 дней
     :return: булевое значение операции получения данных (истина - успешно, иначе - не успешно)

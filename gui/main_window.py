@@ -3,10 +3,13 @@
 """
 import os.path
 import sys
+import time
+from threading import Thread
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QPushButton, QLayout, QLabel, QHBoxLayout
+from PySide6.QtWidgets import QApplication, QPushButton, QLayout, QLabel, QHBoxLayout, QToolBar, QWidget
+from loguru import logger
 
 from general_config import config, logging, CSS, path_join
 from gui.gui_widgets.body import Body
@@ -48,7 +51,19 @@ class ExpandedWidget(Widget,
         self.set_handlers()
 
         self.load_city()
-        self.output_api_data()
+        Thread(target=self.start_getting_data,
+               daemon=True).start()
+
+    @logging
+    def start_getting_data(self):
+        """
+            Обновление данных в отдельном потоке каждые N секунд
+        :return:
+        """
+        while True:
+            self.output_api_data()
+            time.sleep(int(config['App Settings']['update_every_N_seconds']))
+            logger.debug("Обновил данные")
 
     @logging
     def get_need_widgets(self):
